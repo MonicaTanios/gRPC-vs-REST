@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>gRPC vs REST</title>
+    <link rel="icon" type="image/png" href="../../../grpc-logo-png_seeklogo-430953.ico"/>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #76ace7 0%, #ffffff 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+            scroll-behavior: smooth;
+            /* Smooth scrolling to sections */
+        }
+
+        .agenda-list li {
+            list-style: none;
+            padding: 10px;
+            border-radius: 5px;
+            background: linear-gradient(135deg, #fef5e7, #fed7aa);
+            border-left: 5px solid #f6ad55;
+            margin-bottom: 10px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .intro-text {
+            font-size: 1.1em;
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Main slide/section styling */
+        .slide {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            /* Smooth transition for scroll-on */
+            opacity: 0;
+            /* Initially hidden */
+            transform: translateY(50px);
+            /* Initially slightly below */
+        }
+
+        .slide:hover {
+            transform: translateY(-5px);
+            /* Slight lift on hover */
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+        }
+
+        .slide h1 {
+            color: #4a5568;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .slide h2 {
+            color: #2d3748;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .slide h3 {
+            color: #4a5568;
+            font-size: 1.5rem;
+            margin: 20px 0 10px;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: #4a5568;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .emoji {
+            font-size: 1.2em;
+        }
+
+        .demo-image {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .intro-section {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border: 2px solid #cbd5e0;
+        }
+
+        .what-is-box {
+            background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+            border: 2px solid #4299e1;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .what-is-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2b6cb0;
+            margin-bottom: 15px;
+        }
+
+        .definition {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+
+        .key-points {
+            list-style: none;
+            padding: 0;
+        }
+
+        .key-points li {
+            padding: 5px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .key-points li::before {
+            content: "→";
+            color: #4299e1;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .api-card {
+            border: 2px solid;
+            border-radius: 12px;
+            padding: 25px;
+            cursor: pointer;
+        }
+
+        .grpc-card {
+            border-color: #48bb78;
+            background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+        }
+
+        .rest-card {
+            border-color: #4299e1;
+            background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+        }
+
+        .api-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .api-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .code-example {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            color: #48bb78;
+            font-weight: bold;
+        }
+
+        .interactive-demo {
+            text-align: center;
+        }
+
+        .demo-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .demo-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            min-width: 180px;
+        }
+
+        .grpc-btn {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .rest-btn {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+        }
+
+        .demo-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .result-area {
+            background: #f7fafc;
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 25px;
+            margin-top: 20px;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1em;
+        }
+
+        .result-active {
+            border-color: #4299e1;
+            background: linear-gradient(135deg, #ebf8ff, #bee3f8);
+        }
+
+        .agenda {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .agenda-item {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .agenda-item:hover {
+            transform: scale(1.02);
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .comparison-item {
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .grpc-side {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .rest-side {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .code-block pre {
+            margin: 0;
+        }
+
+        .analogy-box {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-left: 5px solid #ff6b35;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .performance-chart {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .chart-bar {
+            display: inline-block;
+            width: 100px;
+            margin: 0 10px;
+            text-align: center;
+        }
+
+        .bar {
+            width: 100%;
+            border-radius: 5px;
+            margin: 10px 0;
+            transition: height 0.3s ease;
+        }
+
+        .grpc-bar {
+            background: linear-gradient(to top, #4facfe, #00f2fe);
+            height: 60px;
+        }
+
+        .rest-bar {
+            background: linear-gradient(to top, #43e97b, #38f9d7);
+            height: 100px;
+        }
+
+        .use-cases {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .use-case {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .use-case:hover {
+            transform: scale(1.05);
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, #ffecd2, #fcb69f);
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+            color: #d63031;
+        }
+
+        .analogy-section {
+            background: linear-gradient(135deg, #fef5e7, #fed7aa);
+            border: 2px solid #f6ad55;
+        }
+
+        .analogy-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .analogy-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #fff5f5, #fed7d7);
+            border: 2px solid #f56565;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #c53030;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #744210;
+            margin-top: 5px;
+        }
+
+        .step-by-step {
+            background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+            border: 2px solid #48bb78;
+            padding: 0px 25px 25px 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            height: 450px;
+            overflow-y: auto;
+            /* Allow scrolling if steps exceed height */
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+        }
+
+        .step-number {
+            background: #48bb78;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .steps-upper-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            padding-top: 25px;
+            /* Add padding to match step content */
+        }
+
+        @media (max-width: 768px) {
+
+            .comparison-grid,
+            .analogy-grid,
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .demo-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        /* General table styling */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            /* Rounded corners for the table */
+            overflow: hidden;
+            /* Ensures rounded corners apply to content */
+        }
+
+        /* Table header styling */
+        .comparison-table thead th {
+            background-color: #005691;
+            /* Siemens blue */
+            color: white;
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 2px solid #003f6b;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* Table body cell styling */
+        .comparison-table tbody td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            vertical-align: top;
+            /* Align content to the top */
+            line-height: 1.6;
+        }
+
+        /* Alternating row colors for better readability */
+        .comparison-table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        /* Hover effect for rows */
+        .comparison-table tbody tr:hover {
+            background-color: #f0f8ff;
+            /* Light blue on hover */
+        }
+
+        /* Styling for lists within table cells */
+        .comparison-table ul {
+            margin: 0;
+            padding-left: 20px;
+            /* Indent list items */
+            list-style-type: disc;
+            /* Use standard disc bullets */
+        }
+
+        .comparison-table ul li {
+            margin-bottom: 8px;
+            /* Space between list items */
+        }
+
+        .comparison-table ul li:last-child {
+            margin-bottom: 0;
+            /* No margin after the last item */
+        }
+
+        /* Specific styling for the "Advantages" and "Disadvantages" row headers */
+        .comparison-table tbody td:first-child {
+            background-color: #f2f2f2;
+            font-weight: 600;
+            color: #333;
+            border-right: 1px solid #e0e0e0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>gRPC vs REST: A Deep Dive</h1>
+            <p class="subtitle">Optimizing API Communication for Modern Applications</p>
+        </div>
+
+        <div class="slide">
+            <h2 class="section-title">
+                <span class="emoji">📋</span>
+                Today's Agenda
+            </h2>
+            <ul class="agenda-list">
+                <li>What is an API? - Understanding REST</li>
+                <li>Understanding gRPC</li>
+                <li>Deep Dive into Protocol Buffers</li>
+                <li>Code Examples</li>
+                <!-- <li>gRPC vs. REST: Analogies & Interactive Demo</li> -->
+                <!-- <li>Key Differences & Code Insights</li> -->
+                <!-- <li>Pros and Cons of Each - Performance Comparison</li> -->
+                <li>When to Choose Which?</li>
+                <li>Summary & References</li>
+            </ul>
+            <img class="demo-image" src="./grpc_vs_rest.png" alt="gRPC vs REST Overview Diagram">
+        </div>
+
+        <div class="slide intro-section">
+            <h2 class="section-title">
+                <span class="emoji">📚</span>
+                What is an API?
+            </h2>
+            <div class="what-is-box" style="height: 440px;">
+                <div class="what-is-title">Application Programming Interface (API)</div>
+                <div class="definition">
+                    An API is a <strong>set of rules and protocols</strong> that allows different software components to
+                    communicate with each other. <br>
+                    It defines what requests can be made, how to make them, what data formats to use, and what responses
+                    to expect.
+                </div>
+                <div style="width: 50%; margin-top: 20px; position: absolute; right: 47px; top: 250px;">
+                    <img src="./api.png" alt="REST API Diagram"
+                        style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 100%; display: inline-block;">
+                </div>
+                <ul class="key-points">
+                    <li>Acts as a <strong>contract</strong> between different software components</li>
+                    <li>Enables applications to <strong>share data and functionality</strong></li>
+                    <li>Abstracts complex operations into simple calls</li>
+                    <li>Allows developers to build on existing systems</li>
+                </ul>
+            </div>
+
+            <div class="step-by-step">
+                <div class="steps-upper-header">
+                    <h3 style="margin-bottom: 20px; color: #2f855a;">How APIs Work: Step by Step</h3>
+                    <button id="next-step-btn"
+                        style="margin-top: 20px; padding: 10px 25px; border: none; border-radius: 20px; background: linear-gradient(135deg, #48bb78, #38a169); color: white; font-size: 1em; font-weight: bold; cursor: pointer;">Next
+                        Step</button>
+                </div>
+                <div id="step-container">
+                    <!-- Steps will be shown here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2 class="section-title">
+                <span class="emoji">🌐</span>
+                Understanding REST
+            </h2>
+            <div class="what-is-box rest-card">
+                <div class="what-is-title" style="color: #2b6cb0;">REST (Representational State Transfer)</div>
+                <div class="definition">
+                    REST is a software architectural style that defines a set of rules for exchanging data between
+                    software components. <br>
+                    It’s based on HTTP, the standard communication protocol of the web. Resources are identified by URLs
+                    (endpoints).
+                </div>
+                <ul class="key-points">
+                    <li>Uses standard <strong>HTTP verbs</strong> (GET, POST, PUT, DELETE)</li>
+                    <li>Everything is treated as a resource with a <strong>unique URL</strong></li>
+                    <li><strong>Stateless</strong> - each request contains all needed information</li>
+                    <li>Human-readable <strong>JSON format</strong> (XML also common)</li>
+                    <li>Works with <strong>any programming language and platform</strong></li>
+                </ul>
+                <div style="text-align: center; width: 100%; margin-top: 20px;">
+                    <img src="./RESTAPI.gif" alt="REST API Diagram"
+                        style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 100%; display: inline-block;">
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2 class="section-title">
+                <span class="emoji">🔧</span>
+                Understanding gRPC
+            </h2>
+            <div class="what-is-box grpc-card">
+                <div class="what-is-title" style="color: #2f855a;">gRPC (Google Remote Procedure Call)</div>
+                <div style="width: 40%; margin-top: -50px; float: right;">
+                    <img src="./grpc.png" alt="gRPC Diagram" style="max-width: 100%;">
+                </div>
+                <div class="definition">
+                    gRPC is an open-source, high-performance RPC (Remote Procedure Call) framework that allows you to
+                    call functions on remote servers
+                    as if they were local functions in your code. It's like having a direct, high-speed phone line to
+                    specific services.
+                </div>
+                <ul class="key-points">
+                    <li>Based on Remote Procedure Call (RPC) - you call functions directly</li>
+                    <li>Built on HTTP/2 for better performance and streaming</li>
+                    <li>Supports bidirectional communication streams</li>
+                    <li>Generates client and server code automatically</li>
+                    <li>Uses Protocol Buffers for fast, compact data serialization</li>
+                </ul>
+                <div class="analogy-box">
+                    <h3>🎯 Frontend Analogy</h3>
+                    <p><strong>Think of gRPC like TypeScript for APIs:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>REST API = Vanilla JavaScript (flexible but loose)</li>
+                        <li>gRPC = TypeScript (strict, typed, compiled)</li>
+                        <li>Just like TypeScript catches errors at compile time, gRPC catches API contract issues before
+                            runtime.</li>
+                    </ul>
+                    <!-- Add image ./grpc-frontend-analogy.png -->
+                    <div style="text-align: center; margin-top: 20px;">
+                        <img src="./js_vs_ts.png" alt="gRPC Frontend Analogy"
+                            style="max-width: 60%; display: inline-block;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2 class="section-title">
+                <span class="emoji">📄</span>
+                Deep Dive into Protocol Buffers (Protobuf)
+            </h2>
+            <div class="what-is-box grpc-card">
+                <div class="what-is-title" style="color: #2f855a;">What is Protocol Buffers?</div>
+                <div class="definition">
+                    Protocol Buffers are Google's language-neutral, platform-neutral, extensible mechanism for
+                    serializing structured data. <br>
+                    They are used in gRPC to define the service interface and the structure of the payload messages.
+                </div>
+                <ul class="key-points">
+                    <li>Defines the "shape" of your data and service methods in a `.proto` file.</li>
+                    <li>Enables efficient, binary data serialization and deserialization.</li>
+                    <li>Generates source code (client and server stubs) in various languages automatically.</li>
+                    <li>Ensures type safety and contract adherence across different services.</li>
+                </ul>
+                <div class="analogy-box">
+                    <h3>🎯 Frontend Analogy</h3>
+                    <p><strong>Protobuf is like interface definitions in TypeScript:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Defines the "shape" of your data.</li>
+                        <li>Ensures type safety across services.</li>
+                        <li>Generates client code automatically.</li>
+                        <li>Like having a contract that both frontend and backend must follow.</li>
+                    </ul>
+                </div>
+                <h3>Example Protobuf Definition:</h3>
+                <div class="code-block">
+                    <pre>syntax = "proto3";
+
+message User {
+  int32 id = 1;
+  string name = 2;
+  string email = 3;
+  repeated string hobbies = 4;
+}
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (User);
+  rpc CreateUser(CreateUserRequest) returns (User);
+}</pre>
+<!-- rpc StreamUsers(Empty) returns (stream User); // Like EventSource -->
+                </div>
+            </div>
+        </div>
+
+        <!-- <div class="slide analogy-section">
+            <h2 class="section-title">
+                <span class="emoji">🍽️</span>
+                gRPC vs. REST: The Restaurant Analogy
+            </h2>
+            <p style="font-size: 1.1em; margin-bottom: 20px;">
+                Let's understand APIs through a familiar scenario: ordering food at a restaurant.
+            </p>
+            <div class="analogy-grid">
+                <div class="analogy-card rest-card">
+                    <h3>🍕 REST Restaurant</h3>
+                    <p><strong>Standard Menu System</strong></p>
+                    <p>You interact with standard menu operations: "GET me the pizza menu," "POST this custom order," 
+                    "PUT extra cheese on order #123," "DELETE that appetizer." Simple, universal, and everyone understands it!</p>
+                </div>
+                <div class="analogy-card grpc-card">
+                    <h3>🥘 gRPC Restaurant</h3>
+                    <p><strong>Direct Chef Communication</strong></p>
+                    <p>You have a direct line to the chef and can say: "Please execute your 'make_signature_dish' function with these ingredients." 
+                    The chef can even stream multiple courses to you simultaneously while you're still talking!</p>
+                </div>
+            </div>
+        </div> -->
+
+        <!-- <div class="slide">
+            <h2 class="section-title">
+                <span class="emoji">⚡</span>
+                See Them in Action: Interactive Demo
+            </h2>
+            <div class="interactive-demo">
+                <p>Let's see how each approach handles creating a new order:</p>
+                <div class="demo-buttons">
+                    <button class="demo-btn rest-btn" onclick="simulateREST()">
+                        📡 Send REST Request
+                    </button>
+                    <button class="demo-btn grpc-btn" onclick="simulateGRPC()">
+                        🔧 Call gRPC Function
+                    </button>
+                </div>
+                <div class="result-area" id="result">
+                    Click a button above to see how each API style works! 🚀
+                </div>
+            </div>
+        </div> -->
+        <div class="slide">
+            <h2 class="section-title">
+                <span class="emoji">⚡</span>
+                See Them in Action: Code Examples
+            </h2>
+            <div class="interactive-demo">
+                <p>Click the buttons below to display the code snippets for implementing User Get/Create operations
+                    using REST vs. gRPC:</p>
+                <div class="demo-buttons">
+                    <button class="demo-btn rest-btn" onclick="displayRESTCode()">
+                        📡 Show REST Code
+                    </button>
+                    <button class="demo-btn grpc-btn" onclick="displayGRPC_Code()">
+                        🔧 Show gRPC Code
+                    </button>
+                </div>
+                <div class="result-area" id="result">
+                    Click a button above to see the code! 🚀
+                </div>
+            </div>
+        </div>
+
+        <!-- <div class="slide">
+            <h2 class="section-title">
+                <span class="emoji">💻</span>
+                Key Differences & Code Insights
+            </h2>
+            <div class="comparison-grid">
+                <div class="api-card grpc-card">
+                    <div class="api-title">
+                        <span>🔧</span>
+                        gRPC - Function Calls
+                    </div>
+                    <p><strong>Service-Oriented:</strong> Call functions directly on remote servers</p>
+                    <div class="code-example">
+                        // Define service in .proto file
+                        service OrderService {
+                        rpc CreateOrder(OrderRequest)
+                        returns (OrderResponse);
+                        rpc StreamOrders(CustomerRequest)
+                        returns (stream Order);
+                        }
+
+                        // Client calls function like it's local
+                        const order = await client.CreateOrder({
+                        customerId: "123",
+                        itemId: "pizza",
+                        quantity: 2
+                        });
+
+                        console.log(`Order ${order.id} created!`);
+                    </div>
+                    <ul class="feature-list">
+                        <li>Direct function calls</li>
+                        <li>Binary Protocol Buffers (fast, compact)</li>
+                        <li>HTTP/2 multiplexing</li>
+                        <li>Streaming support (unary, server, client, bidirectional)</li>
+                        <li>Auto-generated client/server code</li>
+                    </ul>
+                </div>
+
+                <div class="api-card rest-card">
+                    <div class="api-title">
+                        <span>📡</span>
+                        REST - Resource Operations
+                    </div>
+                    <p><strong>Resource-Oriented:</strong> Interact with resources using HTTP verbs</p>
+                    <div class="code-example">
+                        // Standard HTTP operations on resources
+                        POST /api/orders (create)
+                        GET /api/orders/123 (read)
+                        PUT /api/orders/123 (update)
+                        DELETE /api/orders/123 (delete)
+
+                        // Client makes HTTP request
+                        const response = await fetch('/api/orders', {
+                        method: 'POST',
+                        headers: {
+                        'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                        customerId: "123",
+                        itemId: "pizza",
+                        quantity: 2
+                        })
+                        });
+
+                        const order = await response.json();
+                    </div>
+                    <ul class="feature-list">
+                        <li>Standard HTTP verbs</li>
+                        <li>Human-readable JSON format</li>
+                        <li>Stateless operations</li>
+                        <li>Universal browser support</li>
+                        <li>Easy to understand and debug</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 40px;">Key Technical Differences:</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">HTTP/2</div>
+                    <div class="stat-label">gRPC Protocol</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">HTTP/1.1</div>
+                    <div class="stat-label">REST Protocol (typically)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">Binary (Protobuf)</div>
+                    <div class="stat-label">gRPC Data Format</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">JSON / XML</div>
+                    <div class="stat-label">REST Data Format</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">Functions</div>
+                    <div class="stat-label">gRPC Abstraction</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">Resources</div>
+                    <div class="stat-label">REST Abstraction</div>
+                </div>
+            </div>
+        </div> -->
+
+        <div class="slide">
+            <h2 class="section-title">
+                <span class="emoji">✅</span>
+                Pros and Cons of Each
+            </h2>
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 10px; gap: 10px;">
+                    <button class="demo-btn" id="highlight-keys-btn" style="background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); color: #333; font-weight: bold;">🌟 Highlight Keys</button>
+                    <button class="demo-btn" id="clear-highlight-btn" style="background: #e2e8f0; color: #333; font-weight: bold; display: none;">Clear Highlights</button>
+                </div>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>gRPC</th>
+                        <th>REST</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Advantages</strong></td>
+                        <td>
+                            <ul>
+                                <li><strong>Performance:</strong> Binary encoding & HTTP/2 lead to faster, more
+                                    efficient communication.</li>
+                                <li><strong>Type Safety:</strong> Protobuf enforces strict contracts, reducing runtime
+                                    errors.</li>
+                                <li><strong>Streaming:</strong> Built-in support for real-time, bidirectional data
+                                    streams.</li>
+                                <li><strong>Code Generation:</strong> Automated client/server code saves development
+                                    time.</li>
+                                <li><strong>Language Agnostic:</strong> Works across many programming languages
+                                    seamlessly.</li>
+                                    <!-- Highlight: gRPC Key Advantages -->
+                            </ul>
+                        </td>
+                        <td>
+                            <ul>
+                                <li><strong>Simplicity:</strong> Easy to understand and implement with standard HTTP
+                                    methods.</li>
+                                <li><strong>Browser Compatibility:</strong> Natively supported by all web browsers.</li>
+                                <li><strong>Human-Readable:</strong> JSON/XML payloads are easy to inspect and debug.
+                                </li>
+                                <li><strong>Caching:</strong> Leverages standard HTTP caching mechanisms effectively.
+                                </li>
+                                <li><strong>Tooling:</strong> Rich ecosystem of tools, libraries, and documentation.
+                                </li>
+                                    <!-- Highlight: REST Key Advantages -->
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Disadvantages</strong></td>
+                        <td>
+                            <ul>
+                                <li><strong>Browser Support:</strong> Limited direct browser usage (requires gRPC-Web
+                                    proxy).</li>
+                                <li><strong>Debugging:</strong> Binary format is not human-readable, making debugging
+                                    harder.</li>
+                                <li><strong>Learning Curve:</strong> More complex concepts (Protobuf, HTTP/2 streams)
+                                    than REST.</li>
+                                <li><strong>Tooling:</strong> Fewer mature dev tools and ecosystem compared to REST.
+                                </li>
+                                <li><strong>Caching:</strong> Harder to implement HTTP-level caching compared to REST
+                                    GET requests.</li>
+                                    <!-- Highlight: gRPC Key Disadvantages -->
+                            </ul>
+                        </td>
+                        <td>
+                            <ul>
+                                <li><strong>Performance Overhead:</strong> Text-based (JSON) can be larger and slower to
+                                    parse.</li>
+                                <li><strong>Inefficient for Streaming:</strong> Not designed for persistent,
+                                    bidirectional communication.</li>
+                                <li><strong>Over-fetching/Under-fetching:</strong> Can lead to inefficiencies in data
+                                    retrieval.</li>
+                                <li><strong>Less Strict Contracts:</strong> Lacks inherent type safety unless external
+                                    schemas are used.</li>
+                                <li><strong>HTTP/1.1 Limitations:</strong> Head-of-line blocking can impact performance.
+                                </li>
+                                    <!-- Highlight: REST Key Disadvantages -->
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="analogy-box">
+                <h3>🎯 Frontend Analogy</h3>
+                <p><strong>gRPC is like choosing React + TypeScript over vanilla HTML/JS:</strong></p>
+                <p>More setup, steeper learning curve, but better performance, type safety, and maintainability for
+                    complex applications.</p>
+            </div>
+
+                <script>
+                // ...existing code...
+
+                // Highlight Keys logic for Pros and Cons
+                document.addEventListener('DOMContentLoaded', function () {
+                    const highlightBtn = document.getElementById('highlight-keys-btn');
+                    const clearBtn = document.getElementById('clear-highlight-btn');
+                    // Selectors for the most important bullet points (edit as needed)
+                    const grpcPros = [
+                        'Performance:',
+                        'Type Safety:',
+                        'Streaming:'
+                    ];
+                    const grpcCons = [
+                        'Browser Support:',
+                        'Learning Curve:'
+                    ];
+                    const restPros = [
+                        'Simplicity:',
+                        'Browser Compatibility:'
+                    ];
+                    const restCons = [
+                        'Performance Overhead:',
+                        'Inefficient for Streaming:'
+                    ];
+
+                    function highlightKeys() {
+                        // gRPC Pros
+                        document.querySelectorAll('.comparison-table tbody tr:nth-child(1) td:nth-child(2) li').forEach(li => {
+                            grpcPros.forEach(key => {
+                                if (li.textContent.trim().startsWith(key)) {
+                                    li.style.background = 'linear-gradient(90deg, #a1c4fd 0%, #c2e9fb 100%)';
+                                    li.style.color = '#005691';
+                                    li.style.fontWeight = 'bold';
+                                    li.style.paddingLeft = '5px';
+                                }
+                            });
+                        });
+                        // gRPC Cons
+                        document.querySelectorAll('.comparison-table tbody tr:nth-child(2) td:nth-child(2) li').forEach(li => {
+                            grpcCons.forEach(key => {
+                                if (li.textContent.trim().startsWith(key)) {
+                                    li.style.background = 'linear-gradient(90deg, #f6d365 0%, #fda085 100%)';
+                                    li.style.color = '#b83227';
+                                    li.style.fontWeight = 'bold';
+                                    li.style.paddingLeft = '5px';
+                                }
+                            });
+                        });
+                        // REST Pros
+                        document.querySelectorAll('.comparison-table tbody tr:nth-child(1) td:nth-child(3) li').forEach(li => {
+                            restPros.forEach(key => {
+                                if (li.textContent.trim().startsWith(key)) {
+                                    li.style.background = 'linear-gradient(90deg, #a1c4fd 0%, #c2e9fb 100%)';
+                                    li.style.color = '#005691';
+                                    li.style.fontWeight = 'bold';
+                                    li.style.paddingLeft = '5px';
+                                }
+                            });
+                        });
+                        // REST Cons
+                        document.querySelectorAll('.comparison-table tbody tr:nth-child(2) td:nth-child(3) li').forEach(li => {
+                            restCons.forEach(key => {
+                                if (li.textContent.trim().startsWith(key)) {
+                                    li.style.fontWeight = 'bold';
+                                    li.style.background = 'linear-gradient(90deg, #f6d365 0%, #fda085 100%)';
+                                    li.style.color = '#b83227';
+                                    li.style.paddingLeft = '5px';
+                                }
+                            });
+                        });
+                        highlightBtn.style.display = 'none';
+                        clearBtn.style.display = 'inline-block';
+                    }
+
+                    function clearHighlights() {
+                        document.querySelectorAll('.comparison-table li').forEach(li => {
+                            li.style.background = '';
+                            li.style.fontWeight = '';
+                            li.style.color = '';
+                        });
+                        highlightBtn.style.display = 'inline-block';
+                        clearBtn.style.display = 'none';
+                    }
+
+                    highlightBtn.addEventListener('click', highlightKeys);
+                    clearBtn.addEventListener('click', clearHighlights);
+                });
+                // ...existing code...
+                </script>
+        </div>
+
+        <!-- <div class="slide">
+            <h2 class="section-title">
+                <span class="emoji">⚡</span>
+                Performance Comparison: gRPC vs REST
+            </h2>
+
+            <div class="performance-chart">
+                <h3>Typical Performance Metrics (Illustrative)</h3>
+                <div style="display: flex; justify-content: space-around; align-items: end; margin: 30px 0;">
+                    <div class="chart-bar">
+                        <div class="bar grpc-bar"></div>
+                        <strong>gRPC</strong><br>
+                        <small>~60ms avg</small>
+                    </div>
+                    <div class="chart-bar">
+                        <div class="bar rest-bar"></div>
+                        <strong>REST JSON</strong><br>
+                        <small>~100ms avg</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison">
+                <div class="comparison-item grpc-side">
+                    <h3>gRPC Performance Factors</h3>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>Serialization:</strong> 2-10x faster than JSON (binary Protobuf)</li>
+                        <li><strong>Payload Size:</strong> 20-30% smaller (compact binary format)</li>
+                        <li><strong>Connection:</strong> HTTP/2 multiplexing (single connection for multiple requests)
+                        </li>
+                        <li><strong>Streaming:</strong> Efficient real-time data transfer with persistent connections
+                        </li>
+                    </ul>
+                </div>
+                <div class="comparison-item rest-side">
+                    <h3>REST Performance Factors</h3>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>Serialization:</strong> JSON parsing overhead (text-based)</li>
+                        <li><strong>Payload Size:</strong> Human-readable but larger (verbose JSON)</li>
+                        <li><strong>Connection:</strong> HTTP/1.1 limitations (multiple connections, head-of-line
+                            blocking)</li>
+                        <li><strong>Caching:</strong> Better browser/CDN caching for static resources</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="analogy-box">
+                <h3>🎯 Frontend Analogy</h3>
+                <p><strong>Like the difference between:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>Minified, tree-shaken bundle (gRPC) vs Development build (REST)</li>
+                    <li>WebP images (gRPC) vs PNG images (REST)</li>
+                    <li>Service Workers with caching (gRPC streaming) vs Regular fetch calls (REST)</li>
+                </ul>
+            </div>
+        </div> -->
+
+        <div class="slide">
+            <h2 class="section-title">
+                <span class="emoji">🎯</span>
+                When to Choose Which?
+            </h2>
+            <div class="comparison-grid">
+                <div class="api-card grpc-card">
+                    <div class="api-title">
+                        <span>🚀</span>
+                        Choose gRPC When...
+                    </div>
+                    <ul class="feature-list">
+                        <li>Building high-performance microservices (service-to-service)</li>
+                        <li>Need real-time streaming data (e.g., chat, live updates)</li>
+                        <li>Working with large data volumes or low-latency requirements</li>
+                        <li>Internal service communication within an organization</li>
+                        <li>Multi-language environments where interoperability is key</li>
+                        <li>Performance, efficiency, and strict contracts are critical</li>
+                    </ul>
+                    <div
+                        style="margin-top: 15px; padding: 15px; background: rgba(72, 187, 120, 0.1); border-radius: 8px;">
+                        <strong>Examples:</strong> Netflix streaming, Google internal services, financial trading
+                        systems, IoT devices.
+                    </div>
+                </div>
+
+                <div class="api-card rest-card">
+                    <div class="api-title">
+                        <span>🌐</span>
+                        Choose REST When...
+                    </div>
+                    <ul class="feature-list">
+                        <li>Building public-facing APIs for broad consumption</li>
+                        <li>Developing standard web applications (browser compatibility)</li>
+                        <li>Performing simple CRUD (Create, Read, Update, Delete) operations</li>
+                        <li>Need broad compatibility and ease of integration for third-parties</li>
+                        <li>Team is new to APIs or prefers simplicity over raw performance</li>
+                        <li>Leveraging existing HTTP infrastructure and caching mechanisms</li>
+                    </ul>
+                    <div
+                        style="margin-top: 15px; padding: 15px; background: rgba(66, 153, 225, 0.1); border-radius: 8px;">
+                        <strong>Examples:</strong> Twitter API, GitHub API, e-commerce websites, social media platforms,
+                        public data services.
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 40px;">❌ When NOT to Use gRPC:</h3>
+            <ul style="margin-left: 20px; margin-top: 20px;">
+                <li><strong>Public APIs:</strong> REST is generally more accessible and easier for third-party
+                    developers.</li>
+                <li><strong>Browser-first Applications:</strong> Direct browser support for gRPC is limited, requiring
+                    proxies.</li>
+                <li><strong>Simple CRUD Operations:</strong> The overhead of Protobuf and code generation might be
+                    overkill.</li>
+                <li><strong>Heavy Caching Requirements:</strong> HTTP caching mechanisms are more mature and easier with
+                    REST.</li>
+                <li><strong>Small Teams/Projects:</strong> The initial learning curve and setup can be more significant.
+                </li>
+            </ul>
+        </div>
+
+        <div class="slide">
+            <h2>🎯 Summary & References</h2>
+
+            <!-- <div class="analogy-box">
+                <h3>🎯 Final Frontend Analogy</h3>
+                <p><strong>Choosing gRPC vs REST is like choosing:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>TypeScript + React</strong> (gRPC) vs <strong>Vanilla JavaScript</strong> (REST)</li>
+                    <li><strong>Webpack + optimizations</strong> (gRPC) vs <strong>Simple script tags</strong> (REST)
+                    </li>
+                    <li><strong>Modern frameworks</strong> (gRPC) vs <strong>jQuery</strong> (REST)</li>
+                </ul>
+                <p><em>Both have their place, but gRPC shines in complex, performance-critical applications, especially
+                        for internal communication.</em></p>
+            </div> -->
+
+            <h3>Decision Matrix:</h3>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                    <thead style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+                        <tr>
+                            <th style="padding: 15px; text-align: left;">Scenario</th>
+                            <th style="padding: 15px; text-align: center;">gRPC</th>
+                            <th style="padding: 15px; text-align: center;">REST</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="background: #f8f9fa;">
+                            <td style="padding: 15px;">Public API</td>
+                            <td style="padding: 15px; text-align: center;">❌</td>
+                            <td style="padding: 15px; text-align: center;">✅</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 15px;">Microservices Communication</td>
+                            <td style="padding: 15px; text-align: center;">✅</td>
+                            <td style="padding: 15px; text-align: center;">⚠️</td>
+                        </tr>
+                        <tr style="background: #f8f9fa;">
+                            <td style="padding: 15px;">Real-time Features / Streaming</td>
+                            <td style="padding: 15px; text-align: center;">✅</td>
+                            <td style="padding: 15px; text-align: center;">❌</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 15px;">Mobile Apps (Efficiency)</td>
+                            <td style="padding: 15px; text-align: center;">✅</td>
+                            <td style="padding: 15px; text-align: center;">⚠️</td>
+                        </tr>
+                        <tr style="background: #f8f9fa;">
+                            <td style="padding: 15px;">Simple CRUD</td>
+                            <td style="padding: 15px; text-align: center;">⚠️</td>
+                            <td style="padding: 15px; text-align: center;">✅</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 15px;">Browser-first Client</td>
+                            <td style="padding: 15px; text-align: center;">❌</td>
+                            <td style="padding: 15px; text-align: center;">✅</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>📋 References:</h3>
+            <ul style="margin-left: 20px; margin-top: 20px;">
+                <li><a href="https://grpc.io/docs/" target="_blank">gRPC documentation</a></li>
+                <li><a href="https://aws.amazon.com/compare/the-difference-between-grpc-and-rest/" target="_blank">AWS Comparison: gRPC vs REST</a></li>
+                <li><a href="https://protobuf.dev/overview/" target="_blank">Protocol Buffers documentation</a></li>
+                <li><a href="https://www.cloudflare.com/learning/performance/http2-vs-http1.1/" target="_blank">HTTP/2 vs HTTP/1.1</a></li>
+                <li><a href="https://www.youtube.com/watch?v=1yjAUY1ifUg" target="_blank">YouTube Video: gRPC for Beginners</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Scroll-on visibility logic
+        document.addEventListener('DOMContentLoaded', function () {
+            const slides = document.querySelectorAll('.slide');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                        // Optional: Stop observing once visible if you don't need to re-hide
+                        // observer.unobserve(entry.target); 
+                    } else {
+                        // Optional: Hide again when scrolled out of view
+                        entry.target.style.opacity = '0';
+                        entry.target.style.transform = 'translateY(50px)';
+                    }
+                });
+            }, {
+                threshold: 0.1 // Trigger when 10% of the slide is visible
+            });
+
+            slides.forEach((slide, index) => {
+                // Initial state is already set in CSS, just observe
+                observer.observe(slide);
+            });
+        });
+
+        // Step-by-step API logic
+        const steps = [
+            `<div class="step"><div class="step-number">1</div><div><strong>Client makes a request:</strong> Your app asks for specific data or action (e.g., "get user info").</div></div>`,
+            `<div class="step"><div class="step-number">2</div><div><strong>API processes the request:</strong> The API receives, validates, and routes your request to the appropriate service.</div></div>`,
+            `<div class="step"><div class="step-number">3</div><div><strong>Server performs the action:</strong> The backend system retrieves data, executes logic, or interacts with databases.</div></div>`,
+            `<div class="step"><div class="step-number">4</div><div><strong>Response is sent back:</strong> The API returns the results in a structured format (e.g., JSON, Protobuf) your app can understand.</div></div>`
+        ];
+        let currentStep = 0;
+        const stepContainer = document.getElementById('step-container');
+        const nextBtn = document.getElementById('next-step-btn');
+
+        function addStep(idx) {
+            stepContainer.innerHTML += steps[idx];
+            stepContainer.scrollTop = stepContainer.scrollHeight; // Scroll to bottom to show new step
+        }
+
+        // Show the first step initially
+        if (steps.length > 0) {
+            addStep(currentStep);
+        }
+
+        nextBtn.addEventListener('click', function () {
+            currentStep++;
+            if (currentStep < steps.length) {
+                addStep(currentStep);
+                if (currentStep === steps.length - 1) {
+                    nextBtn.textContent = 'Finish';
+                }
+            } else {
+                nextBtn.textContent = 'Done!';
+                nextBtn.disabled = true;
+            }
+        });
+
+        // Helper function to create a code block HTML string
+        function createCodeBlock(lang, code, title = '') {
+            return `
+            <div class="code-block" style="margin-top: 20px;">
+                ${title ? `<h4 style="color: #66d9ef; margin-bottom: 10px;">${title}</h4>` : ''}
+                <pre><code class="language-${lang}">${escapeHtml(code)}</code></pre>
+            </div>
+        `;
+        }
+
+        // Helper function to escape HTML for pre-tag content
+        function escapeHtml(text) {
+            var map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function (m) { return map[m]; });
+        }
+
+        // Function to display REST code snippets
+        function displayRESTCode() {
+            const resultArea = document.getElementById('result');
+            resultArea.classList.add('result-active');
+
+            const restBackendCode = `// GET a user by ID
+app.get('/users/:id', (req, res) => {
+    const user = users.find(u => u.id === req.params.id);
+    if (user) {
+        res.json(user);
+    } else {
+        res.status(404).send('User not found');
+    }
+});`;
+
+            const restFrontendCode = `async function getUserREST(id) {
+        try {
+            const response = await fetch(\`http://localhost:3000/users/\${id}\`);
+            if (!response.ok) {
+                throw new Error(\`HTTP error! status: \${response.status}\`);
+            }
+            const user = await response.json();
+            console.log('REST: Fetched User:', user);
+            return user;
+        } catch (error) {
+            console.error('REST: Error fetching user:', error);
+            return null;
+        }
+    }
+                `;
+
+            resultArea.innerHTML = `
+                    <div style="text-align: left; width: 100%;">
+                        <h3>📡 REST API Implementation</h3>
+                        <p>REST uses standard HTTP methods and JSON for communication. Here's how you might implement it:</p>
+                        ${createCodeBlock('javascript', restBackendCode, 'REST Backend (Node.js with Express)')}
+                        ${createCodeBlock('javascript', restFrontendCode, 'REST Frontend (JavaScript fetch)')}
+                    </div>
+                `;
+        }
+
+        // Function to display gRPC code snippets
+        function displayGRPC_Code() {
+            const resultArea = document.getElementById('result');
+            resultArea.classList.add('result-active');
+
+            const grpcProtoCode = `syntax = "proto3";
+
+        package users; // Defines a package for your service
+
+        // Message definition for a User
+        message User {
+            string id = 1;
+            string name = 2;
+            string email = 3;
+        }
+
+        // Request message for getting a user by ID
+        message GetUserRequest {
+            string id = 1;
+        }
+
+        // Service definition with RPC methods
+        service UserService {
+            rpc GetUser (GetUserRequest) returns (User);
+        }
+                `;
+
+            const grpcBackendCode = `const grpc = require('@grpc/grpc-js');
+        const protoLoader = require('@grpc/proto-loader');
+        const path = require('path');
+
+        const PROTO_PATH = path.join(__dirname, '../proto/user_service.proto'); // Adjust path as needed
+
+        const packageDefinition = protoLoader.loadSync(
+            PROTO_PATH,
+            { keepCase: true, longs: String, enums: String, defaults: true, oneofs: true }
+        );
+        const usersProto = grpc.loadPackageDefinition(packageDefinition).users;
+
+        let users = [
+            { id: '1', name: 'Alice', email: 'alice@example.com' },
+            { id: '2', name: 'Bob', email: 'bob@example.com' }
+        ];
+
+        const userServiceImplementation = {
+            getUser: (call, callback) => {
+                const userId = call.request.id;
+                const user = users.find(u => u.id === userId);
+                if (user) {
+                    callback(null, user);
+                } else {
+                    callback({ code: grpc.status.NOT_FOUND, details: "User not found" });
+                }
+            }
+        };
+                `;
+
+            const grpcFrontendCode = `// Mocking the client and request/response objects for in-browser display
+        // In a real project, these would be imported from generated code.
+        class MockUserServiceClient {
+            constructor(host, credentials, options) {
+                console.log(\`Mock gRPC-Web Client initialized for \${host}\`);
+            }
+            getUser(request, metadata, callback) {
+                console.log('Mock getUser called with:', request.getId());
+                // Simulate a response
+                setTimeout(() => {
+                    if (request.getId() === '1') {
+                        callback(null, { getId: () => '1', getName: () => 'Alice', getEmail: () => 'alice@example.com' });
+                    } else {
+                        callback(new Error('Mock User not found'), null);
+                    }
+                }, 100);
+            }
+        }
+
+        class MockGetUserRequest { constructor() { this._id = ''; } setId(id) { this._id = id; return this; } getId() { return this._id; } }
+
+
+        // const client = new UserServiceClient('http://localhost:8080', null, null); // Your gRPC-Web proxy endpoint
+        const client = new MockUserServiceClient('http://localhost:8080'); // Using mock for in-browser demo
+
+        async function getUserGRPCWeb(id) {
+            return new Promise((resolve, reject) => {
+                const request = new MockGetUserRequest().setId(id); // Use MockGetUserRequest
+                client.getUser(request, {}, (err, response) => {
+                    if (err) {
+                        console.error('gRPC-Web: Error fetching user:', err.message);
+                        reject(err);
+                    } else {
+                        const user = { id: response.getId(), name: response.getName(), email: response.getEmail() };
+                        console.log('gRPC-Web: Fetched User:', user);
+                        resolve(user);
+                    }
+                });
+            });
+        }`;
+
+            resultArea.innerHTML = `
+                    <div style="text-align: left; width: 100%;">
+                        <h3>🔧 gRPC API Implementation</h3>
+                        <p>gRPC requires a Protocol Buffer definition, a server implementation, and a client. For browsers, gRPC-Web is used with a proxy.</p>
+                        ${createCodeBlock('protobuf', grpcProtoCode, 'Step 1: Protocol Buffer Definition (user_service.proto)')}
+                        ${createCodeBlock('javascript', grpcBackendCode, 'Step 2: gRPC Backend (Node.js Server)')}
+                        <div class="note" style="margin-top: 20px;">
+                            <strong>Important Note for gRPC-Web:</strong> This gRPC-Web client-side code will NOT run directly in your browser without a running gRPC server AND a gRPC-Web proxy configured to translate browser requests. The client code uses mock classes for demonstration purposes.
+                        </div>
+                        ${createCodeBlock('javascript', grpcFrontendCode, 'Step 3: gRPC Frontend (JavaScript with grpc-web)')}
+                    </div>
+                `;
+        }
+    </script>
+</body>
+
+</html>

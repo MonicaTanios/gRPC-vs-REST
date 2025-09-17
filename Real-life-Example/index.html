@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>gRPC Employee Data Service - Team Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .panel:hover {
+            transform: translateY(-5px);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            justify-content: space-between;
+        }
+
+        .panel-header>div {
+            display: flex;
+            align-items: center;
+        }
+
+        .panel-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+
+        .grpc-panel .panel-icon {
+            color: #4285f4;
+        }
+
+        .rest-panel .panel-icon {
+            color: #ff6b35;
+        }
+
+        .panel h2 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metric {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .metric-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .results {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        .record {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .record:last-child {
+            border-bottom: none;
+        }
+
+        .record-info {
+            flex: 1;
+        }
+
+        .record-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .record-details {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .record-salary {
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .status.loading {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status.success {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 gRPC Employee Data Service Demo</h1>
+            <p>Demonstrating gRPC server-side streaming with 10,000 employee records</p>
+        </div>
+
+        <div class="comparison-container">
+            <!-- gRPC Panel -->
+            <div class="panel grpc-panel">
+                <div class="panel-header">
+                    <div>
+                        <div class="panel-icon">⚡</div>
+                        <h2>gRPC Client</h2>
+                    </div>
+                    <button onclick="fetchGrpcData()" id="grpcBtn">Fetch via gRPC</button>
+                </div>
+                <div id="grpcStatus" class="status" style="display: none;"></div>
+                <div id="grpcResults" class="results" style="display: none;"></div>
+            </div>
+
+            <!-- REST Panel -->
+            <div class="panel rest-panel">
+                <div class="panel-header">
+                    <div>
+                        <div class="panel-icon">🌐</div>
+                        <h2>REST API Client</h2>
+                    </div>
+                    <button onclick="fetchRestData()" id="restBtn">Fetch via REST</button>
+                </div>
+                <div id="restStatus" class="status" style="display: none;"></div>
+                <div id="restResults" class="results" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/@improbable-eng/grpc-web@0.15.0/dist/grpc-web-client.min.js"></script>
+    <script>
+        // REST function - disabled for this gRPC-focused demo
+        async function fetchRestData() {
+            const btn = document.getElementById('restBtn');
+            const status = document.getElementById('restStatus');
+            const results = document.getElementById('restResults');
+            
+            btn.disabled = true;
+            status.className = 'status loading';
+            status.textContent = '🌐 REST endpoint not available in this gRPC-focused demo...';
+            status.style.display = 'block';
+            results.style.display = 'none';
+
+            try {
+                // Simulate some loading time for demo purposes
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                status.className = 'status error';
+                status.textContent = '💡 This demo focuses on gRPC capabilities. Use the gRPC button to see the employee data service in action!';
+                
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = `❌ REST Error: ${error.message}`;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // gRPC-Web call that properly integrates with our new Employee Data Service
+        async function fetchGrpcData() {
+            const btn = document.getElementById('grpcBtn');
+            const status = document.getElementById('grpcStatus');
+            const results = document.getElementById('grpcResults');
+            
+            btn.disabled = true;
+            status.className = 'status loading';
+            status.textContent = '⚡ Fetching employee data via gRPC-Web...';
+            status.style.display = 'block';
+            results.style.display = 'none';
+
+            try {
+                const startTime = performance.now();
+                
+                // Properly encode an empty protobuf message for LargeDataRequest
+                const requestBody = new Uint8Array([0x00]); // Single zero byte for empty message
+                
+                // Make gRPC-Web call through grpcwebproxy (port 8080) to our gRPC server (port 50051)
+                const response = await fetch('http://localhost:8080/simpledata.SimpleDataService/StreamLargeData', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/grpc-web-text',
+                        'X-Grpc-Web': '1',
+                        'X-User-Agent': 'grpc-web-javascript/0.1'
+                    },
+                    body: requestBody
+                });
+
+                if (!response.ok) {
+                    throw new Error(`gRPC call failed: ${response.status} ${response.statusText}`);
+                }
+
+                // Read the response as text (gRPC-Web text format is base64 encoded)
+                const responseText = await response.text();
+                console.log('🔍 Response received, length:', responseText.length);
+                
+                const employees = [];
+                
+                if (responseText && responseText.length > 0) {
+                    try {
+                        // gRPC-Web text format is base64 encoded, decode it
+                        const decoded = atob(responseText);
+                        console.log('📝 Decoded response length:', decoded.length);
+                        
+                        // Extract employee data - our server sends data in this format:
+                        // "ID: 00001 | Name: Manager Engineering Employee 1 | Email: ..."
+                        const employeePattern = /ID:\s*\d+\s*\|\s*Name:[^|]+\|\s*Email:[^|]+\|\s*Department:[^|]+\|\s*Salary:[^|]+\|\s*Hire Date:[^|]+/g;
+                        const matches = decoded.match(employeePattern);
+                        
+                        if (matches) {
+                            employees.push(...matches);
+                            console.log('✅ Extracted', employees.length, 'employee records');
+                        } else {
+                            // Fallback: try to extract any line that looks like employee data
+                            const lines = decoded.split(/[\r\n]+/).filter(line => 
+                                line.includes('ID:') && line.includes('Name:') && line.includes('Email:')
+                            );
+                            employees.push(...lines);
+                            console.log('📋 Fallback extraction found', employees.length, 'records');
+                        }
+                    } catch (decodeError) {
+                        console.error('❌ Decode error:', decodeError);
+                        throw new Error('Failed to decode gRPC response');
+                    }
+                } else {
+                    throw new Error('Empty response from gRPC server');
+                }
+
+                const endTime = performance.now();
+                const duration = Math.round(endTime - startTime);
+                
+                // Display results
+                if (employees.length > 0) {
+                    results.innerHTML = employees.map(emp => 
+                        `<div class="record">
+                            <div class="record-info">${emp}</div>
+                        </div>`
+                    ).join('');
+                    results.style.display = 'block';
+                    status.className = 'status success';
+                    status.textContent = `✅ Success! Retrieved ${employees.length.toLocaleString()} employee records in ${duration}ms via gRPC-Web`;
+                } else {
+                    status.className = 'status error';
+                    status.textContent = '⚠️ No employee data received from gRPC server';
+                }
+                
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = `❌ gRPC Error: ${error.message}`;
+                console.error('🚨 gRPC Error:', error);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // ...existing code...
+    </script>
+</body>
+
+</html>

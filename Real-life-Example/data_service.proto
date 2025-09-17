@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package simpledata;
+
+// Service definition
+service SimpleDataService {
+  rpc GetRecords (RecordsRequest) returns (RecordsResponse) {}
+  rpc StreamLargeData (LargeDataRequest) returns (stream LargeDataLine) {}
+}
+
+// Request for streaming large data
+message LargeDataRequest {
+  // Reserved for future options (e.g., start line, limit)
+}
+
+// Streamed line from large data file
+message LargeDataLine {
+  string line = 1;
+}
+
+// Message for a single record
+message Record {
+  int32 id = 1;
+  string name = 2;
+  string email = 3;
+  string department = 4;
+  double salary = 5;
+}
+
+// Request message for GetRecords
+message RecordsRequest {
+  int32 limit = 1;   // Maximum number of records to return
+  int32 offset = 2;  // Starting offset for pagination
+  string filter = 3; // Text to filter records by name or department
+}
+
+// Response message for GetRecords
+message RecordsResponse {
+  repeated Record records = 1;       // List of records
+  int32 total_available = 2;         // Total records matching the filter
+  int32 returned_count = 3;          // Number of records returned in this response
+}
